@@ -5,14 +5,6 @@ from pyspark.sql.avro.functions import from_avro
 from pyspark.sql.functions import col, from_json, expr
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, TimestampType
 
-PageviewsType = StructType(
-    [
-        StructField("viewtime", FloatType(), nullable=False),
-        StructField("name", StringType(), nullable=False),
-        StructField("pageid", StringType(), nullable=False),
-    ]
-)
-
 jsonFormatSchema = (Path(__file__).parent / "schema-pageviews-value-v1.avsc").open("r").read()
 
 if __name__ == "__main__":
@@ -34,6 +26,7 @@ if __name__ == "__main__":
         .format("kafka")
         .option("kafka.bootstrap.servers", "localhost:9092")
         .option("subscribe", "pageviews")
+        .option("startingOffsets", "latest")
         .load()
     )
     df.printSchema()
@@ -60,7 +53,6 @@ if __name__ == "__main__":
         parsed_df
         .writeStream
         .format("console")
-        .option("checkpointLocation", "checkpoint")
         .start()
         .awaitTermination()
     )
