@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pyspark.sql import SparkSession
 from pyspark.sql.avro.functions import from_avro
-from pyspark.sql.functions import col, from_json, expr
+from pyspark.sql.functions import col, from_json, expr, window, count, lit, collect_list
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, TimestampType
 
 jsonFormatSchema = (Path(__file__).parent / "schema-pageviews-value-v1.avsc").open("r").read()
@@ -49,8 +49,32 @@ if __name__ == "__main__":
 
     parsed_df.printSchema()
 
-    (
+    # (
+    #     parsed_df
+    #     .writeStream
+    #     .format("console")
+    #     .start()
+    #     .awaitTermination()
+    # )
+
+    agg_df = (
         parsed_df
+        .withWatermark("timestamp", "3 seconds")
+        .groupBy(window("timestamp", windowDuration="5 seconds"), "partition", "userid")
+        .agg(
+            count(lit(1)).alias("count"),
+            collect_list("pageid").alias("pageids")
+        )
+        .select(
+            "partition",
+            "userid",
+            "count",
+            "pageids",
+        )
+    )
+
+    (
+        agg_df
         .writeStream
         .format("console")
         .start()
