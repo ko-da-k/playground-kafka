@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "kafka-python"
+version = "0.1.0"
+description = ""
+authors = ["ko-da-k <17734711+ko-da-k@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+confluent-kafka = "^2.2.0"
+
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.12.0"
+autoflake = "^2.2.1"
+black = "^23.9.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
